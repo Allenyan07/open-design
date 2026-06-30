@@ -89,6 +89,7 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 
 - Valid cases generate JSON spec successfully
 - Valid bundle cases prepare output bundle successfully
+- Generated bundle sanitizes machine-local upload paths out of `src/chatSpec.ts`
 - Generated bundle passes `tsc --noEmit`
 - Representative valid cases render a still frame successfully
 - Invalid cases fail with the expected validation error

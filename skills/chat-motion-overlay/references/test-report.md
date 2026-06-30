@@ -11,6 +11,7 @@ Validated the new `$chat-motion-overlay` skill across:
 - bundle preparation
 - preset avatar asset copying
 - uploaded avatar asset copying
+- generated bundle sanitization for uploaded avatar paths
 - Remotion template type safety
 - representative still rendering
 - documented question strategy for incomplete requests
@@ -59,6 +60,7 @@ Validated the new `$chat-motion-overlay` skill across:
 - Representative bundles were rendered to still images successfully.
 - Invalid config cases failed with the expected validation errors.
 - Invalid uploaded-avatar file paths failed during bundle preparation with a clear error.
+- Generated `chatSpec.ts` bundles kept only `*UploadAsset` entries and did not leak local `*UploadPath` values.
 - Bundle type checking passed with `tsc --noEmit`.
 
 ## References

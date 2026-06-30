@@ -48,6 +48,12 @@ def write_chat_spec_ts(spec: dict, output_dir: Path) -> None:
     target.write_text(content, encoding="utf-8")
 
 
+def remove_local_upload_paths(spec: dict) -> None:
+    assignments = spec["sceneConfig"]["avatarAssignments"]
+    for side in ("left", "right"):
+        assignments.pop(f"{side}UploadPath", None)
+
+
 def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
     public_dir = output_dir / "public"
     public_dir.mkdir(parents=True, exist_ok=True)
@@ -66,6 +72,7 @@ def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
             target_name = f"{side}-upload{source.suffix.lower()}"
             shutil.copy2(source, public_dir / target_name)
             assignments[f"{side}UploadAsset"] = target_name
+    remove_local_upload_paths(spec)
     write_chat_spec_ts(spec, output_dir)
 
 

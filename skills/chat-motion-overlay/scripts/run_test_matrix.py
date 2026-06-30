@@ -311,6 +311,18 @@ def main() -> None:
             results.append({"case": case["name"], "status": "failed", "phase": "prepare_bundle", "details": bundle_proc.stderr.strip()})
             continue
 
+        generated_spec = (bundle_dir / "src" / "chatSpec.ts").read_text(encoding="utf-8")
+        if "UploadPath" in generated_spec or "/Users/" in generated_spec:
+            results.append(
+                {
+                    "case": case["name"],
+                    "status": "failed",
+                    "phase": "bundle_sanitization",
+                    "details": "Generated chatSpec.ts leaked local upload-path data.",
+                }
+            )
+            continue
+
         symlink_path = bundle_dir / "node_modules"
         if symlink_path.exists() or symlink_path.is_symlink():
             symlink_path.unlink()
