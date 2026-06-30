@@ -58,10 +58,14 @@ def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
         upload_path = assignments.get(f"{side}UploadPath")
         if upload_path:
             source = Path(upload_path).expanduser().resolve()
-            if source.exists():
-                target_name = f"{side}-upload{source.suffix.lower()}"
-                shutil.copy2(source, public_dir / target_name)
-                assignments[f"{side}UploadAsset"] = target_name
+            if not source.exists():
+                raise SystemExit(
+                    f"Configured {side}UploadPath does not exist: {source}. "
+                    "Fix the upload avatar path before preparing the bundle."
+                )
+            target_name = f"{side}-upload{source.suffix.lower()}"
+            shutil.copy2(source, public_dir / target_name)
+            assignments[f"{side}UploadAsset"] = target_name
     write_chat_spec_ts(spec, output_dir)
 
 

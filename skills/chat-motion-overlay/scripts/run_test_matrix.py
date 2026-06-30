@@ -42,6 +42,7 @@ def main() -> None:
 
     sample_upload_left = str((avatar_dir / "female-bunny-pink.png").resolve())
     sample_upload_right = str((avatar_dir / "male-penguin-blue.png").resolve())
+    missing_upload_right = str((avatar_dir / "missing-avatar-does-not-exist.png").resolve())
 
     cases = [
         {
@@ -217,6 +218,27 @@ def main() -> None:
             "expect_fail": True,
             "expected_error": "avatarMode=mixed requires at least one upload path",
         },
+        {
+            "name": "invalid_upload_missing_file",
+            "config": {
+                "container": "wechat",
+                "avatarMode": "upload",
+                "deviceFrame": "iphone-dynamic-island",
+                "nicknameMode": "always",
+                "deliveryFormat": "mov",
+                "showTimestamp": True,
+                "avatarAssignments": {
+                    "leftPreset": "female-bunny-pink",
+                    "rightPreset": "female-cat-orange",
+                    "leftUploadPath": sample_upload_left,
+                    "rightUploadPath": missing_upload_right,
+                },
+            },
+            "render": False,
+            "expect_fail": True,
+            "fail_phase": "prepare_bundle",
+            "expected_error": "Configured rightUploadPath does not exist",
+        },
     ]
 
     results = []
@@ -237,9 +259,34 @@ def main() -> None:
         )
 
         if case["expect_fail"]:
-            combined = (build_proc.stdout or "") + (build_proc.stderr or "")
-            ok = build_proc.returncode != 0 and case["expected_error"] in combined
-            results.append({"case": case["name"], "status": "passed" if ok else "failed", "phase": "validation", "details": combined.strip()})
+            fail_phase = case.get("fail_phase", "validation")
+            if fail_phase == "validation":
+                combined = (build_proc.stdout or "") + (build_proc.stderr or "")
+                ok = build_proc.returncode != 0 and case["expected_error"] in combined
+                results.append({"case": case["name"], "status": "passed" if ok else "failed", "phase": "validation", "details": combined.strip()})
+                continue
+
+            if build_proc.returncode != 0:
+                results.append({"case": case["name"], "status": "failed", "phase": "build_spec", "details": build_proc.stderr.strip() or build_proc.stdout.strip()})
+                continue
+
+            bundle_proc = run(
+                [
+                    sys.executable,
+                    str(bundle_script),
+                    "--transcript",
+                    str(transcript),
+                    "--config",
+                    str(config_path),
+                    "--output-dir",
+                    str(bundle_dir),
+                    "--force",
+                ],
+                cwd=skill_root,
+            )
+            combined = (bundle_proc.stdout or "") + (bundle_proc.stderr or "")
+            ok = bundle_proc.returncode != 0 and case["expected_error"] in combined
+            results.append({"case": case["name"], "status": "passed" if ok else "failed", "phase": "prepare_bundle", "details": combined.strip()})
             continue
 
         if build_proc.returncode != 0:

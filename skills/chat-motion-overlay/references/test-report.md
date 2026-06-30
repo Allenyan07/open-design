@@ -17,8 +17,8 @@ Validated the new `$chat-motion-overlay` skill across:
 
 ## Matrix Result
 
-- Total cases: 9
-- Passed: 9
+- Total cases: 10
+- Passed: 10
 - Failed: 0
 
 ## Covered Cases
@@ -32,6 +32,7 @@ Validated the new `$chat-motion-overlay` skill across:
 7. `json_spec_only`
 8. `invalid_upload_missing_side`
 9. `invalid_mixed_without_upload`
+10. `invalid_upload_missing_file`
 
 ## Issues Found And Fixed
 
@@ -50,10 +51,14 @@ Validated the new `$chat-motion-overlay` skill across:
 5. Incomplete user requests needed a consistent clarification strategy.
    - Fix: added a documented question policy with defaults, question limits, and user-facing wording.
 
+6. Missing uploaded avatar files could silently fall back to preset avatars during bundle preparation.
+   - Fix: made `prepare_chat_overlay_bundle.py` fail fast when a configured upload path does not exist, and added bundle-stage coverage for that case.
+
 ## Verification Notes
 
 - Representative bundles were rendered to still images successfully.
 - Invalid config cases failed with the expected validation errors.
+- Invalid uploaded-avatar file paths failed during bundle preparation with a clear error.
 - Bundle type checking passed with `tsc --noEmit`.
 
 ## References

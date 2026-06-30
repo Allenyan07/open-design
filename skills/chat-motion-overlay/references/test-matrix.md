@@ -80,6 +80,11 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
    - No upload path
    - Expected: fail with validation error
 
+10. `invalid_upload_missing_file`
+   - Avatar mode: `upload`
+   - Upload path points to a missing file
+   - Expected: bundle preparation fails fast with a clear missing-file error
+
 ## Pass Criteria
 
 - Valid cases generate JSON spec successfully
@@ -87,4 +92,5 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Generated bundle passes `tsc --noEmit`
 - Representative valid cases render a still frame successfully
 - Invalid cases fail with the expected validation error
+- Invalid upload-path cases fail during bundle preparation instead of silently falling back to preset avatars
 - Question policy is documented with defaults, triggers, and user-facing wording
