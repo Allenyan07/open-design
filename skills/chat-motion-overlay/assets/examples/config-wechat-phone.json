@@ -1,0 +1,14 @@
+{
+  "container": "wechat",
+  "avatarMode": "preset",
+  "deviceFrame": "iphone-dynamic-island",
+  "nicknameMode": "hidden",
+  "deliveryFormat": "mov",
+  "showTimestamp": true,
+  "avatarAssignments": {
+    "leftPreset": "female-bunny-pink",
+    "rightPreset": "female-cat-orange",
+    "leftUploadPath": null,
+    "rightUploadPath": null
+  }
+}
