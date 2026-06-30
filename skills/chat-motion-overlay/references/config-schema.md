@@ -12,11 +12,16 @@ Provide a JSON file when the user wants anything beyond the defaults.
   "nicknameMode": "first-message-only",
   "deliveryFormat": "mov",
   "showTimestamp": true,
-  "avatarAssignments": {
-    "leftPreset": "female-bunny-pink",
-    "rightPreset": "female-cat-orange",
-    "leftUploadPath": null,
-    "rightUploadPath": null
+  "participants": {
+    "Alice": {
+      "side": "left",
+      "preset": "female-fox-yellow"
+    },
+    "Bob": {
+      "side": "right",
+      "preset": "male-penguin-blue",
+      "uploadPath": "/path/to/bob-avatar.png"
+    }
   }
 }
 ```
@@ -31,8 +36,8 @@ Provide a JSON file when the user wants anything beyond the defaults.
 
 - `avatarMode`
   - `preset`: use only bundled preset avatars
-  - `upload`: use only uploaded avatar files
-  - `mixed`: combine preset on one side and upload on the other
+  - `upload`: require uploaded avatar files for all participants
+  - `mixed`: combine preset and uploaded avatars across participants
 
 - `deviceFrame`
   - `none`
@@ -54,9 +59,13 @@ Provide a JSON file when the user wants anything beyond the defaults.
 - `showTimestamp`
   - boolean
 
-- `avatarAssignments`
-  - `leftPreset`, `rightPreset`
-  - `leftUploadPath`, `rightUploadPath`
+- `participants`
+  - Keys are speaker names from the transcript or screenshot.
+  - `side`: `left` or `right`; the same participant must stay on the same side.
+  - `preset`: optional bundled preset avatar key.
+  - `uploadPath`: optional local avatar file path used during bundle preparation.
+  - If omitted, participants are inferred from the transcript and assigned stable preset avatars.
+  - In generated bundles, local `uploadPath` values are removed and only copied `uploadAsset` names are retained.
 
 ## Preset Avatar Keys
 

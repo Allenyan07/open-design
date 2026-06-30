@@ -38,12 +38,7 @@ DEFAULT_CONFIG = {
     "nicknameMode": "hidden",
     "deliveryFormat": "mov",
     "showTimestamp": True,
-    "avatarAssignments": {
-        "leftPreset": "female-bunny-pink",
-        "rightPreset": "female-cat-orange",
-        "leftUploadPath": None,
-        "rightUploadPath": None,
-    },
+    "participants": {},
 }
 
 
@@ -118,9 +113,7 @@ def load_config(path: str | None) -> dict:
         validate_config(config)
         return config
     user = json.loads(Path(path).read_text(encoding="utf-8"))
-    config.update({k: v for k, v in user.items() if k != "avatarAssignments"})
-    if "avatarAssignments" in user:
-        config["avatarAssignments"].update(user["avatarAssignments"])
+    config.update(user)
     validate_config(config)
     return config
 
@@ -137,22 +130,30 @@ def validate_config(config: dict) -> None:
     if config["deliveryFormat"] not in ALLOWED_DELIVERY_FORMATS:
         raise ValueError(f"Unsupported deliveryFormat: {config['deliveryFormat']}")
 
-    assignments = config["avatarAssignments"]
-    for side in ("left", "right"):
-        preset_key = assignments.get(f"{side}Preset")
+    for speaker, participant in config.get("participants", {}).items():
+        side = participant.get("side")
+        if side and side not in {"left", "right"}:
+            raise ValueError(f"Unsupported side for participant {speaker}: {side}")
+        preset_key = participant.get("preset")
         if preset_key and preset_key not in PRESET_KEYS:
-            raise ValueError(f"Unsupported {side}Preset: {preset_key}")
-
-    if config["avatarMode"] == "upload":
-        if not assignments.get("leftUploadPath") or not assignments.get("rightUploadPath"):
-            raise ValueError("avatarMode=upload requires both leftUploadPath and rightUploadPath")
-    if config["avatarMode"] == "mixed":
-        if not assignments.get("leftUploadPath") and not assignments.get("rightUploadPath"):
-            raise ValueError("avatarMode=mixed requires at least one upload path")
+            raise ValueError(f"Unsupported preset for participant {speaker}: {preset_key}")
+        upload_path = participant.get("uploadPath")
+        if participant.get("uploadAsset"):
+            raise ValueError(f"Participant {speaker} config must use uploadPath, not uploadAsset")
+        if config["avatarMode"] == "upload" and not upload_path:
+            raise ValueError(f"avatarMode=upload requires uploadPath for participant {speaker}")
 
 
-def auto_avatar_for_side(side: str, config: dict) -> str:
-    return config["avatarAssignments"]["leftPreset"] if side == "left" else config["avatarAssignments"]["rightPreset"]
+def auto_avatar_for_participant(participant_index: int, used_avatar_keys: set[str]) -> str:
+    preferred = [*PRESET_KEYS[participant_index:], *PRESET_KEYS[:participant_index]]
+    for avatar_key in preferred:
+        if avatar_key not in used_avatar_keys:
+            return avatar_key
+    return PRESET_KEYS[participant_index % len(PRESET_KEYS)]
+
+
+def configured_participant(speaker: str, config: dict) -> dict:
+    return config.get("participants", {}).get(speaker, {})
 
 
 def build_spec(parsed: dict, config: dict) -> dict:
@@ -166,17 +167,30 @@ def build_spec(parsed: dict, config: dict) -> dict:
         speaker = message["speaker"]
         if speaker not in participants:
             order.append(speaker)
+            configured = configured_participant(speaker, config)
             inferred_side = "left" if len(order) == 1 else "right" if len(order) == 2 else "left"
-            side = message["side"] or inferred_side
-            participants[speaker] = {
+            side = configured.get("side") or message["side"] or inferred_side
+            avatar_key = message["avatar"] or configured.get("preset") or auto_avatar_for_participant(
+                len(order) - 1, {p["avatarKey"] for p in participants.values()}
+            )
+            participant = {
                 "id": slugify(speaker),
                 "name": speaker,
                 "side": side,
-                "avatarKey": message["avatar"] or auto_avatar_for_side(side, config),
+                "avatarKey": avatar_key,
             }
+            if configured.get("uploadPath"):
+                participant["uploadPath"] = configured["uploadPath"]
+            if config["avatarMode"] == "upload" and not participant.get("uploadPath"):
+                raise ValueError(f"avatarMode=upload requires uploadPath for participant {speaker}")
+            participants[speaker] = participant
         participant = participants[speaker]
         side = message["side"] or participant["side"]
+        if side != participant["side"]:
+            raise ValueError(f"Participant {speaker} appears on both {participant['side']} and {side}; use one side per participant")
         avatar_key = message["avatar"] or participant["avatarKey"]
+        if avatar_key != participant["avatarKey"]:
+            raise ValueError(f"Participant {speaker} uses conflicting avatar keys: {participant['avatarKey']} and {avatar_key}")
         messages.append(
             {
                 "id": f"msg-{index + 1}",
@@ -188,14 +202,17 @@ def build_spec(parsed: dict, config: dict) -> dict:
                 "highlight": bool(message["highlight"]),
             }
         )
+    if config["avatarMode"] == "mixed" and not any(participant.get("uploadPath") for participant in participants.values()):
+        raise ValueError("avatarMode=mixed requires at least one upload path")
     duration = start + max(len(messages) - 1, 0) * gap + int(meta["hold"])
     runtime_output = DELIVERY_TO_OUTPUT[config["deliveryFormat"]]
+    scene_config = {key: value for key, value in config.items() if key != "participants"}
     return {
         "title": meta["title"],
         "timestamp": meta["time"],
         "durationInFrames": duration,
         "timing": {"start": start, "gap": gap, "hold": int(meta["hold"])},
-        "sceneConfig": {**config, "output": runtime_output},
+        "sceneConfig": {**scene_config, "output": runtime_output},
         "participants": list(participants.values()),
         "messages": messages,
     }

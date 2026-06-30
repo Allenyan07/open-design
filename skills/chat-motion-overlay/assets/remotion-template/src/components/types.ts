@@ -19,16 +19,8 @@ export type ChatSpec = {
     deliveryFormat: "mov" | "webm" | "json" | "remotion" | "hyperframe" | "preview";
     output: "mov-alpha" | "webm-alpha" | "json-spec" | "remotion-component" | "hyperframe-ready" | "preview-only";
     showTimestamp: boolean;
-    avatarAssignments: {
-      leftPreset: AvatarKey;
-      rightPreset: AvatarKey;
-      leftUploadPath?: string | null;
-      rightUploadPath?: string | null;
-      leftUploadAsset?: string | null;
-      rightUploadAsset?: string | null;
-    };
   };
-  participants: ReadonlyArray<{id: string; name: string; side: "left" | "right"; avatarKey: AvatarKey | string}>;
+  participants: ReadonlyArray<{id: string; name: string; side: "left" | "right"; avatarKey: AvatarKey | string; uploadAsset?: string | null}>;
   messages: ReadonlyArray<{
     id: string;
     speaker: string;

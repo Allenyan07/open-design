@@ -5,10 +5,14 @@
   "nicknameMode": "hidden",
   "deliveryFormat": "mov",
   "showTimestamp": true,
-  "avatarAssignments": {
-    "leftPreset": "female-bunny-pink",
-    "rightPreset": "female-cat-orange",
-    "leftUploadPath": null,
-    "rightUploadPath": null
+  "participants": {
+    "闺蜜": {
+      "side": "left",
+      "preset": "female-bunny-pink"
+    },
+    "老婆": {
+      "side": "right",
+      "preset": "female-cat-orange"
+    }
   }
 }

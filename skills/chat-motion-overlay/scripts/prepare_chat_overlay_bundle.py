@@ -49,9 +49,8 @@ def write_chat_spec_ts(spec: dict, output_dir: Path) -> None:
 
 
 def remove_local_upload_paths(spec: dict) -> None:
-    assignments = spec["sceneConfig"]["avatarAssignments"]
-    for side in ("left", "right"):
-        assignments.pop(f"{side}UploadPath", None)
+    for participant in spec["participants"]:
+        participant.pop("uploadPath", None)
 
 
 def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
@@ -59,19 +58,18 @@ def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
     public_dir.mkdir(parents=True, exist_ok=True)
     for preset_file in avatar_library_dir().glob("*.png"):
         shutil.copy2(preset_file, public_dir / preset_file.name)
-    assignments = spec["sceneConfig"]["avatarAssignments"]
-    for side in ("left", "right"):
-        upload_path = assignments.get(f"{side}UploadPath")
+    for participant in spec["participants"]:
+        upload_path = participant.get("uploadPath")
         if upload_path:
             source = Path(upload_path).expanduser().resolve()
             if not source.exists():
                 raise SystemExit(
-                    f"Configured {side}UploadPath does not exist: {source}. "
+                    f"Configured uploadPath for participant {participant['name']} does not exist: {source}. "
                     "Fix the upload avatar path before preparing the bundle."
                 )
-            target_name = f"{side}-upload{source.suffix.lower()}"
+            target_name = f"{participant['id']}-upload{source.suffix.lower()}"
             shutil.copy2(source, public_dir / target_name)
-            assignments[f"{side}UploadAsset"] = target_name
+            participant["uploadAsset"] = target_name
     remove_local_upload_paths(spec)
     write_chat_spec_ts(spec, output_dir)
 

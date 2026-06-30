@@ -10,7 +10,17 @@ const CONTAINER_THEME = {
   messenger: {screenBg: "#F3F5F8", headerBg: "#FFFFFF", bubbleLeft: "#FFFFFF", bubbleRight: "#0A84FF", subtitle: "#7E8695"},
 } as const;
 
-const Bubble = ({message, chatSpec, seenBySpeaker}: {message: ChatSpec["messages"][number]; chatSpec: ChatSpec; seenBySpeaker: boolean}) => {
+const Bubble = ({
+  message,
+  participant,
+  chatSpec,
+  seenBySpeaker,
+}: {
+  message: ChatSpec["messages"][number];
+  participant: ChatSpec["participants"][number];
+  chatSpec: ChatSpec;
+  seenBySpeaker: boolean;
+}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const theme = CONTAINER_THEME[chatSpec.sceneConfig.container];
@@ -39,7 +49,7 @@ const Bubble = ({message, chatSpec, seenBySpeaker}: {message: ChatSpec["messages
         justifyContent: chatSpec.sceneConfig.container === "none" ? (isRight ? "flex-end" : "flex-start") : "unset",
       }}
     >
-      <AvatarImage src={avatarSrcFor(message.avatarKey, message.side, chatSpec)} />
+      <AvatarImage src={avatarSrcFor(participant)} />
       <div style={{maxWidth: "72%", display: "flex", flexDirection: "column", alignItems: isRight ? "flex-end" : "flex-start", gap: 6}}>
         {showName ? <div style={{fontSize: 18, color: "#7C8490", fontWeight: 700}}>{message.speaker}</div> : null}
         <div
@@ -69,6 +79,7 @@ export const BubbleScene = ({chatSpec}: {chatSpec: ChatSpec}) => {
   const theme = CONTAINER_THEME[chatSpec.sceneConfig.container];
   const headerOpacity = interpolate(frame, [0, 12], [0, 1], {extrapolateRight: "clamp"});
   const seen = new Set<string>();
+  const participantsByName = new Map(chatSpec.participants.map((participant) => [participant.name, participant]));
   const showContainer = chatSpec.sceneConfig.container !== "none";
   const inner = (
     <>
@@ -101,7 +112,9 @@ export const BubbleScene = ({chatSpec}: {chatSpec: ChatSpec}) => {
         {chatSpec.messages.map((message) => {
           const seenBefore = seen.has(message.speaker);
           seen.add(message.speaker);
-          return <Bubble key={message.id} message={message} chatSpec={chatSpec} seenBySpeaker={seenBefore} />;
+          const participant = participantsByName.get(message.speaker);
+          if (!participant) return null;
+          return <Bubble key={message.id} message={message} participant={participant} chatSpec={chatSpec} seenBySpeaker={seenBefore} />;
         })}
       </div>
     </>

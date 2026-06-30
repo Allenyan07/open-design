@@ -10,13 +10,7 @@ export const chatSpec = {
     "nicknameMode": "hidden",
     "deliveryFormat": "mov",
     "output": "mov-alpha",
-    "showTimestamp": true,
-    "avatarAssignments": {
-      "leftPreset": "female-bunny-pink",
-      "rightPreset": "female-cat-orange",
-      "leftUploadPath": null,
-      "rightUploadPath": null
-    }
+    "showTimestamp": true
   },
   participants: [],
   messages: []

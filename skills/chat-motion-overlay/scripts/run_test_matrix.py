@@ -26,6 +26,37 @@ def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=str(cwd), text=True, capture_output=True)
 
 
+def participant(side: str, preset: str, upload_path: str | None = None) -> dict:
+    value = {"side": side, "preset": preset}
+    if upload_path:
+        value["uploadPath"] = upload_path
+    return value
+
+
+def base_config(
+    *,
+    container: str = "wechat",
+    avatar_mode: str = "preset",
+    device_frame: str = "iphone-dynamic-island",
+    nickname_mode: str = "hidden",
+    delivery_format: str = "mov",
+    show_timestamp: bool = True,
+    participants: dict | None = None,
+) -> dict:
+    return {
+        "container": container,
+        "avatarMode": avatar_mode,
+        "deviceFrame": device_frame,
+        "nicknameMode": nickname_mode,
+        "deliveryFormat": delivery_format,
+        "showTimestamp": show_timestamp,
+        "participants": participants or {
+            "闺蜜": participant("left", "female-bunny-pink"),
+            "老婆": participant("right", "female-cat-orange"),
+        },
+    }
+
+
 def main() -> None:
     args = parse_args()
     skill_root = Path(args.skill_root).resolve()
@@ -43,201 +74,158 @@ def main() -> None:
     sample_upload_left = str((avatar_dir / "female-bunny-pink.png").resolve())
     sample_upload_right = str((avatar_dir / "male-penguin-blue.png").resolve())
     missing_upload_right = str((avatar_dir / "missing-avatar-does-not-exist.png").resolve())
+    group_transcript = """title: 闺蜜群（6）
+time: 星期二 22:19
+
+闺蜜A|左|今天没运动
+闺蜜B|左|我也没动
+老婆|右|那晚上少喝奶茶
+闺蜜C|左|我已经点好了
+"""
+    side_conflict_transcript = """title: 冲突测试
+time: 今天
+
+老婆|right|第一句在右侧
+老婆|left|第二句错误地在左侧
+"""
 
     cases = [
         {
             "name": "default_wechat_phone_preset_hidden",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "preset",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "hidden",
-                "deliveryFormat": "mov",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": None,
-                    "rightUploadPath": None,
-                },
-            },
+            "config": base_config(),
             "render": True,
             "expect_fail": False,
         },
         {
             "name": "plain_bubbles_no_frame_first_message",
-            "config": {
-                "container": "none",
-                "avatarMode": "preset",
-                "deviceFrame": "none",
-                "nicknameMode": "first-message-only",
-                "deliveryFormat": "remotion",
-                "showTimestamp": False,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": None,
-                    "rightUploadPath": None,
-                },
-            },
+            "config": base_config(container="none", device_frame="none", nickname_mode="first-message-only", delivery_format="remotion", show_timestamp=False),
             "render": True,
             "expect_fail": False,
         },
         {
             "name": "telegram_no_frame_always",
-            "config": {
-                "container": "telegram",
-                "avatarMode": "preset",
-                "deviceFrame": "none",
-                "nicknameMode": "always",
-                "deliveryFormat": "webm",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-fox-yellow",
-                    "rightPreset": "male-bear-mint",
-                    "leftUploadPath": None,
-                    "rightUploadPath": None,
+            "config": base_config(
+                container="telegram",
+                device_frame="none",
+                nickname_mode="always",
+                delivery_format="webm",
+                participants={
+                    "闺蜜": participant("left", "female-fox-yellow"),
+                    "老婆": participant("right", "male-bear-mint"),
                 },
-            },
+            ),
             "render": True,
             "expect_fail": False,
         },
         {
             "name": "messenger_phone_hidden",
-            "config": {
-                "container": "messenger",
-                "avatarMode": "preset",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "hidden",
-                "deliveryFormat": "mov",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "male-koala-lilac",
-                    "rightPreset": "male-penguin-blue",
-                    "leftUploadPath": None,
-                    "rightUploadPath": None,
+            "config": base_config(
+                container="messenger",
+                participants={
+                    "闺蜜": participant("left", "male-koala-lilac"),
+                    "老婆": participant("right", "male-penguin-blue"),
                 },
-            },
+            ),
             "render": True,
             "expect_fail": False,
         },
         {
             "name": "upload_phone_always",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "upload",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "always",
-                "deliveryFormat": "mov",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": sample_upload_left,
-                    "rightUploadPath": sample_upload_right,
+            "config": base_config(
+                avatar_mode="upload",
+                nickname_mode="always",
+                participants={
+                    "闺蜜": participant("left", "female-bunny-pink", sample_upload_left),
+                    "老婆": participant("right", "female-cat-orange", sample_upload_right),
                 },
-            },
+            ),
             "render": True,
             "expect_fail": False,
         },
         {
             "name": "mixed_wechat_phone_first_message",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "mixed",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "first-message-only",
-                "deliveryFormat": "hyperframe",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "male-penguin-blue",
-                    "leftUploadPath": sample_upload_left,
-                    "rightUploadPath": None,
+            "config": base_config(
+                avatar_mode="mixed",
+                nickname_mode="first-message-only",
+                delivery_format="hyperframe",
+                participants={
+                    "闺蜜": participant("left", "female-bunny-pink", sample_upload_left),
+                    "老婆": participant("right", "male-penguin-blue"),
                 },
-            },
+            ),
             "render": True,
             "expect_fail": False,
         },
         {
             "name": "json_spec_only",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "preset",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "hidden",
-                "deliveryFormat": "json",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": None,
-                    "rightUploadPath": None,
-                },
-            },
+            "config": base_config(delivery_format="json"),
             "render": False,
             "expect_fail": False,
         },
         {
-            "name": "invalid_upload_missing_side",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "upload",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "always",
-                "deliveryFormat": "mov",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": sample_upload_left,
-                    "rightUploadPath": None,
+            "name": "group_multi_participant_distinct_presets",
+            "transcriptContent": group_transcript,
+            "config": base_config(
+                nickname_mode="always",
+                delivery_format="preview",
+                participants={
+                    "闺蜜A": participant("left", "female-bunny-pink"),
+                    "闺蜜B": participant("left", "female-fox-yellow"),
+                    "老婆": participant("right", "female-cat-orange"),
+                    "闺蜜C": participant("left", "male-bear-mint"),
                 },
-            },
+            ),
+            "render": False,
+            "expect_fail": False,
+            "assert_distinct_participant_avatars": True,
+        },
+        {
+            "name": "invalid_upload_missing_side",
+            "config": base_config(
+                avatar_mode="upload",
+                nickname_mode="always",
+                participants={
+                    "闺蜜": participant("left", "female-bunny-pink", sample_upload_left),
+                    "老婆": participant("right", "female-cat-orange"),
+                },
+            ),
             "render": False,
             "expect_fail": True,
-            "expected_error": "avatarMode=upload requires both leftUploadPath and rightUploadPath",
+            "expected_error": "avatarMode=upload requires uploadPath for participant 老婆",
         },
         {
             "name": "invalid_mixed_without_upload",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "mixed",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "always",
-                "deliveryFormat": "mov",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": None,
-                    "rightUploadPath": None,
-                },
-            },
+            "config": base_config(avatar_mode="mixed", nickname_mode="always"),
             "render": False,
             "expect_fail": True,
             "expected_error": "avatarMode=mixed requires at least one upload path",
         },
         {
             "name": "invalid_upload_missing_file",
-            "config": {
-                "container": "wechat",
-                "avatarMode": "upload",
-                "deviceFrame": "iphone-dynamic-island",
-                "nicknameMode": "always",
-                "deliveryFormat": "mov",
-                "showTimestamp": True,
-                "avatarAssignments": {
-                    "leftPreset": "female-bunny-pink",
-                    "rightPreset": "female-cat-orange",
-                    "leftUploadPath": sample_upload_left,
-                    "rightUploadPath": missing_upload_right,
+            "config": base_config(
+                avatar_mode="upload",
+                nickname_mode="always",
+                participants={
+                    "闺蜜": participant("left", "female-bunny-pink", sample_upload_left),
+                    "老婆": participant("right", "female-cat-orange", missing_upload_right),
                 },
-            },
+            ),
             "render": False,
             "expect_fail": True,
             "fail_phase": "prepare_bundle",
-            "expected_error": "Configured rightUploadPath does not exist",
+            "expected_error": "Configured uploadPath for participant 老婆 does not exist",
+        },
+        {
+            "name": "invalid_participant_side_conflict",
+            "transcriptContent": side_conflict_transcript,
+            "config": base_config(
+                participants={
+                    "老婆": participant("right", "female-cat-orange"),
+                },
+            ),
+            "render": False,
+            "expect_fail": True,
+            "expected_error": "Participant 老婆 appears on both right and left",
         },
     ]
 
@@ -251,10 +239,14 @@ def main() -> None:
         config_path = case_dir / "config.json"
         spec_path = case_dir / "spec.json"
         bundle_dir = case_dir / "bundle"
+        active_transcript = transcript
+        if case.get("transcriptContent"):
+            active_transcript = case_dir / "transcript.txt"
+            active_transcript.write_text(case["transcriptContent"], encoding="utf-8")
         write_json(config_path, case["config"])
 
         build_proc = run(
-            [sys.executable, str(build_script), "--input", str(transcript), "--config", str(config_path), "--output", str(spec_path)],
+            [sys.executable, str(build_script), "--input", str(active_transcript), "--config", str(config_path), "--output", str(spec_path)],
             cwd=skill_root,
         )
 
@@ -293,12 +285,26 @@ def main() -> None:
             results.append({"case": case["name"], "status": "failed", "phase": "build_spec", "details": build_proc.stderr.strip()})
             continue
 
+        if case.get("assert_distinct_participant_avatars"):
+            spec = json.loads(spec_path.read_text(encoding="utf-8"))
+            avatar_keys = [participant["avatarKey"] for participant in spec["participants"]]
+            if len(set(avatar_keys)) != len(avatar_keys):
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "participant_avatars",
+                        "details": f"Expected distinct participant avatars, got {avatar_keys}",
+                    }
+                )
+                continue
+
         bundle_proc = run(
             [
                 sys.executable,
                 str(bundle_script),
                 "--transcript",
-                str(transcript),
+                str(active_transcript),
                 "--config",
                 str(config_path),
                 "--output-dir",
@@ -312,7 +318,7 @@ def main() -> None:
             continue
 
         generated_spec = (bundle_dir / "src" / "chatSpec.ts").read_text(encoding="utf-8")
-        if "UploadPath" in generated_spec or "/Users/" in generated_spec:
+        if "uploadPath" in generated_spec or "UploadPath" in generated_spec or "/Users/" in generated_spec:
             results.append(
                 {
                     "case": case["name"],

@@ -43,7 +43,9 @@ Hermes|left|male-penguin-blue|再补食物、运动和体重趋势
 - Valid sides: `left`, `right`, `左`, `右`.
 - Valid flag: `highlight`.
 - If side is missing, the first speaker defaults to left and the second to right.
-- If avatar is missing, the spec builder auto-assigns one.
+- If avatar is missing, the spec builder auto-assigns one per participant.
+- The same speaker must stay on the same side throughout the transcript. If a transcript or screenshot implies conflicting sides for one speaker, stop and ask the user to confirm.
+- Avatar selection is participant-first: use the participant config when provided, otherwise use the transcript avatar hint, otherwise auto-assign a preset.
 
 ## Screenshot Workflow
 
@@ -51,6 +53,8 @@ When the user gives a screenshot:
 
 1. Read the messages in display order.
 2. Infer side from bubble placement.
-3. Record title and timestamp if visible.
-4. Keep uncertain OCR fragments explicit instead of inventing cleaner text.
-5. Convert the result into the transcript format above before running the script.
+3. Infer participants from repeated nicknames, repeated avatars, and visual grouping.
+4. Keep the same participant on the same side; ask for confirmation if the screenshot suggests otherwise.
+5. Record title and timestamp if visible.
+6. Keep uncertain OCR fragments explicit instead of inventing cleaner text.
+7. Convert the result into the transcript format above before running the script.

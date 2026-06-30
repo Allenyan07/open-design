@@ -11,16 +11,9 @@ const PRESET_FILES: Record<AvatarKey, string> = {
   "male-koala-lilac": "male-koala-lilac.png",
 };
 
-export const avatarSrcFor = (avatarKey: string, side: "left" | "right", spec: ChatSpec) => {
-  const assignments = spec.sceneConfig.avatarAssignments;
-  const useUpload =
-    spec.sceneConfig.avatarMode === "upload" ||
-    (spec.sceneConfig.avatarMode === "mixed" && !!assignments[`${side}UploadAsset` as const]);
-  if (useUpload) {
-    const uploaded = assignments[`${side}UploadAsset` as const];
-    if (uploaded) return staticFile(uploaded);
-  }
-  const key = (avatarKey in PRESET_FILES ? avatarKey : side === "left" ? assignments.leftPreset : assignments.rightPreset) as AvatarKey;
+export const avatarSrcFor = (participant: ChatSpec["participants"][number]) => {
+  if (participant.uploadAsset) return staticFile(participant.uploadAsset);
+  const key = (participant.avatarKey in PRESET_FILES ? participant.avatarKey : "female-bunny-pink") as AvatarKey;
   return staticFile(PRESET_FILES[key]);
 };
 
