@@ -229,6 +229,7 @@ A?|right|第二个上传头像
             "expect_fail": True,
             "fail_phase": "prepare_bundle",
             "expected_error": "Configured uploadPath for participant 老婆 does not exist",
+            "assert_no_partial_spec_on_failure": True,
         },
         {
             "name": "invalid_force_dangerous_output_dir",
@@ -352,6 +353,13 @@ A?|right|第二个上传头像
             )
             combined = (bundle_proc.stdout or "") + (bundle_proc.stderr or "")
             ok = bundle_proc.returncode != 0 and case["expected_error"] in combined
+            if ok and case.get("assert_no_partial_spec_on_failure"):
+                leaked_spec = bundle_dir / "src" / "chatSpec.ts"
+                if leaked_spec.exists():
+                    leaked_content = leaked_spec.read_text(encoding="utf-8")
+                    if "uploadPath" in leaked_content or "/Users/" in leaked_content:
+                        ok = False
+                        combined += "\nPartial bundle leaked local upload-path data after failure."
             results.append({"case": case["name"], "status": "passed" if ok else "failed", "phase": "prepare_bundle", "details": combined.strip()})
             continue
 
@@ -451,6 +459,29 @@ A?|right|第二个上传头像
                         "status": "failed",
                         "phase": "bubble_alignment_style",
                         "details": "Bubble-only template must explicitly justify right-side rows to flex-end.",
+                    }
+                )
+                continue
+
+        if case["name"] == "default_wechat_phone_preset_hidden":
+            package_json_source = (bundle_dir / "package.json").read_text(encoding="utf-8")
+            if '"render:mov": "remotion render src/index.ts ChatMotionOverlay out/chat-motion-overlay.mov' not in package_json_source:
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "render_command",
+                        "details": "render:mov script must include src/index.ts before the composition id.",
+                    }
+                )
+                continue
+            if '"render:webm": "remotion render src/index.ts ChatMotionOverlay out/chat-motion-overlay.webm' not in package_json_source:
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "render_command",
+                        "details": "render:webm script must include src/index.ts before the composition id.",
                     }
                 )
                 continue

@@ -86,11 +86,8 @@ def remove_local_upload_paths(spec: dict) -> None:
         participant.pop("uploadPath", None)
 
 
-def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
-    public_dir = output_dir / "public"
-    public_dir.mkdir(parents=True, exist_ok=True)
-    for preset_file in avatar_library_dir().glob("*.png"):
-        shutil.copy2(preset_file, public_dir / preset_file.name)
+def copy_avatar_assets(spec: dict, output_dir: Path) -> dict:
+    upload_sources: list[tuple[dict, Path]] = []
     for participant in spec["participants"]:
         upload_path = participant.get("uploadPath")
         if upload_path:
@@ -100,11 +97,17 @@ def copy_avatar_assets(spec: dict, output_dir: Path) -> None:
                     f"Configured uploadPath for participant {participant['name']} does not exist: {source}. "
                     "Fix the upload avatar path before preparing the bundle."
                 )
-            target_name = f"{participant['id']}-upload{source.suffix.lower()}"
-            shutil.copy2(source, public_dir / target_name)
-            participant["uploadAsset"] = target_name
+            upload_sources.append((participant, source))
+    public_dir = output_dir / "public"
+    public_dir.mkdir(parents=True, exist_ok=True)
+    for preset_file in avatar_library_dir().glob("*.png"):
+        shutil.copy2(preset_file, public_dir / preset_file.name)
+    for participant, source in upload_sources:
+        target_name = f"{participant['id']}-upload{source.suffix.lower()}"
+        shutil.copy2(source, public_dir / target_name)
+        participant["uploadAsset"] = target_name
     remove_local_upload_paths(spec)
-    write_chat_spec_ts(spec, output_dir)
+    return spec
 
 
 def main() -> None:
@@ -114,8 +117,13 @@ def main() -> None:
     spec = build_spec(parsed, config)
     out_dir = Path(args.output_dir).resolve()
     copy_template(out_dir, args.force)
-    write_chat_spec_ts(spec, out_dir)
-    copy_avatar_assets(spec, out_dir)
+    try:
+        sanitized_spec = copy_avatar_assets(spec, out_dir)
+        write_chat_spec_ts(sanitized_spec, out_dir)
+    except BaseException:
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
+        raise
     print(f"Prepared Remotion bundle at {out_dir}")
 
 

@@ -95,7 +95,7 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 11. `invalid_upload_missing_file`
    - Avatar mode: `upload`
    - Upload path points to a missing file
-   - Expected: bundle preparation fails fast with a clear missing-file error
+   - Expected: bundle preparation fails fast with a clear missing-file error and leaves no generated `chatSpec.ts` leaking local upload paths
 
 12. `invalid_participant_side_conflict`
    - One participant appears on both left and right sides
@@ -141,4 +141,5 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error
 - Config participant presets take precedence over transcript avatar hints when both are present
 - `--force` rejects dangerous output directories before deleting anything
+- Advertised Remotion render scripts keep `src/index.ts` before the composition id
 - Question policy is documented with defaults, triggers, and user-facing wording

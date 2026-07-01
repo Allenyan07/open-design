@@ -92,6 +92,12 @@ Validated the new `$chat-motion-overlay` skill across:
 14. `--force` could recursively delete arbitrary existing directories when `--output-dir` was mistyped.
     - Fix: reject dangerous targets up front, and only allow `--force` overwrites for previously generated bundle directories marked with `.chat-motion-overlay-bundle`.
 
+15. A failed uploaded-avatar copy could leave a partial bundle behind with `src/chatSpec.ts` still containing local `uploadPath` values.
+    - Fix: validate upload sources before copying, delay `chatSpec.ts` writing until sanitization succeeds, and remove the generated bundle if preparation fails mid-run.
+
+16. The documented MOV/WebM export commands and shipped package scripts omitted `src/index.ts`, so Remotion would treat the composition id as the entry file.
+    - Fix: update both package scripts and `references/output-modes.md` to use `remotion render src/index.ts ChatMotionOverlay ...`, and keep that path checked in the matrix.
+
 ## Verification Notes
 
 - Representative bundles were rendered to still images successfully.
@@ -107,6 +113,8 @@ Validated the new `$chat-motion-overlay` skill across:
 - Transcript avatar hints that are not valid preset keys fail with a clear validation error.
 - `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error.
 - Dangerous `--force` output targets are rejected before any recursive deletion occurs.
+- Failed uploaded-avatar copies do not leave a generated `chatSpec.ts` containing local upload paths.
+- Shipped Remotion render scripts keep `src/index.ts` before the composition id.
 
 ## References
 

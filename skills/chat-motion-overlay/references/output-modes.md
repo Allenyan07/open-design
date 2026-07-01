@@ -7,7 +7,7 @@ Use user-facing delivery choices and let the skill map them to concrete artifact
 Use this when the clip should be layered in editors such as Premiere, Final Cut, Jianying, or CapCut.
 
 ```bash
-npx remotion render ChatMotionOverlay out/chat-motion-overlay.mov --image-format=png --pixel-format=yuva444p10le --codec=prores --prores-profile=4444
+npx remotion render src/index.ts ChatMotionOverlay out/chat-motion-overlay.mov --image-format=png --pixel-format=yuva444p10le --codec=prores --prores-profile=4444
 ```
 
 ## WebM（透明背景，适合网页 / 浏览器播放）
@@ -15,7 +15,7 @@ npx remotion render ChatMotionOverlay out/chat-motion-overlay.mov --image-format
 Use this when the clip should play in browser or web composition contexts.
 
 ```bash
-npx remotion render ChatMotionOverlay out/chat-motion-overlay.webm --image-format=png --pixel-format=yuva420p --codec=vp9
+npx remotion render src/index.ts ChatMotionOverlay out/chat-motion-overlay.webm --image-format=png --pixel-format=yuva420p --codec=vp9
 ```
 
 ## JSON 数据（适合程序处理 / 自定义渲染）
