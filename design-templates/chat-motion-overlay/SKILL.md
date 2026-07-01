@@ -13,7 +13,10 @@ triggers:
 od:
   mode: video
   surface: video
-  category: animation-motion
+  scenario: marketing
+  preview:
+    type: html
+    entry: example.html
   design_system:
     requires: false
 ---
