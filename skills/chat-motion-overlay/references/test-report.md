@@ -22,8 +22,8 @@ Validated the new `$chat-motion-overlay` skill across:
 
 ## Matrix Result
 
-- Total cases: 13
-- Passed: 13
+- Total cases: 15
+- Passed: 15
 - Failed: 0
 
 ## Covered Cases
@@ -41,6 +41,9 @@ Validated the new `$chat-motion-overlay` skill across:
 11. `invalid_upload_missing_file`
 12. `invalid_participant_side_conflict`
 13. `upload_slug_collision_unique_assets`
+
+14. `invalid_transcript_avatar_key`
+15. `invalid_preset_mode_upload_path`
 
 ## Issues Found And Fixed
 
@@ -75,6 +78,12 @@ Validated the new `$chat-motion-overlay` skill across:
 10. Bubble-only overlays needed explicit right-side row alignment.
     - Fix: split row alignment from avatar/bubble ordering, and added a style assertion for the plain bubble case.
 
+11. Transcript-provided avatar keys that are not in the preset library could silently fall back to a default avatar.
+    - Fix: validate transcript avatar hints against `PRESET_KEYS` before storing the participant.
+
+12. `avatarMode=preset` configs with a participant `uploadPath` could render uploaded files instead of preset avatars.
+    - Fix: reject `uploadPath` when `avatarMode` is `preset`, only carry upload paths for `upload` and `mixed` modes.
+
 ## Verification Notes
 
 - Representative bundles were rendered to still images successfully.
@@ -86,6 +95,8 @@ Validated the new `$chat-motion-overlay` skill across:
 - Bubble-only transparent overlays explicitly align right-side rows to the right edge.
 - Side conflicts for a single participant failed with a clear validation error.
 - Bundle type checking passed with `tsc --noEmit`.
+- Transcript avatar hints that are not valid preset keys fail with a clear validation error.
+- `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error.
 
 ## References
 

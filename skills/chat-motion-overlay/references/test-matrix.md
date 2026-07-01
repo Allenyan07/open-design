@@ -14,6 +14,9 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Validate bubble-only overlays keep right-side rows explicitly right-aligned
 - Lock down the question strategy so incomplete requests are handled consistently
 
+
+  - Validate transcript avatar hints are checked against preset keys before use
+  - Validate `uploadPath` is rejected when `avatarMode` is `preset`
 ## Covered Dimensions
 
 - `container`: `none`, `wechat`, `telegram`, `messenger`
@@ -103,6 +106,15 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
    - Two distinct speaker names normalize to the same slug
    - Expected: generated participant ids and copied upload assets remain unique
 
+
+14. `invalid_transcript_avatar_key`
+   - Transcript line includes a non-preset avatar key
+   - Expected: fail with validation error instead of silently falling back to a preset avatar
+
+15. `invalid_preset_mode_upload_path`
+   - Avatar mode: `preset` but a participant config carries `uploadPath`
+   - Expected: fail with validation error
+
 ## Pass Criteria
 
 - Valid cases generate JSON spec successfully
@@ -116,4 +128,7 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Participant side conflicts fail instead of rendering one person on both sides
 - Invalid cases fail with the expected validation error
 - Invalid upload-path cases fail during bundle preparation instead of silently falling back to preset avatars
+
+- Transcript-provided avatar keys that are not in the preset library fail with a clear validation error
+- `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error
 - Question policy is documented with defaults, triggers, and user-facing wording

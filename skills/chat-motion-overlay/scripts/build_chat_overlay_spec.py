@@ -140,6 +140,8 @@ def validate_config(config: dict) -> None:
         upload_path = participant.get("uploadPath")
         if participant.get("uploadAsset"):
             raise ValueError(f"Participant {speaker} config must use uploadPath, not uploadAsset")
+        if config["avatarMode"] == "preset" and upload_path:
+            raise ValueError(f"avatarMode=preset does not allow uploadPath for participant {speaker}")
         if config["avatarMode"] == "upload" and not upload_path:
             raise ValueError(f"avatarMode=upload requires uploadPath for participant {speaker}")
 
@@ -174,6 +176,8 @@ def build_spec(parsed: dict, config: dict) -> dict:
             avatar_key = message["avatar"] or configured.get("preset") or auto_avatar_for_participant(
                 len(order) - 1, {p["avatarKey"] for p in participants.values()}
             )
+            if avatar_key not in PRESET_KEYS:
+                raise ValueError(f"Unsupported avatar key for participant {speaker}: {avatar_key}")
             participant = {
                 "id": unique_slug(slugify(speaker), used_participant_ids),
                 "name": speaker,
@@ -181,7 +185,7 @@ def build_spec(parsed: dict, config: dict) -> dict:
                 "avatarKey": avatar_key,
             }
             used_participant_ids.add(participant["id"])
-            if configured.get("uploadPath"):
+            if config["avatarMode"] in {"upload", "mixed"} and configured.get("uploadPath"):
                 participant["uploadPath"] = configured["uploadPath"]
             if config["avatarMode"] == "upload" and not participant.get("uploadPath"):
                 raise ValueError(f"avatarMode=upload requires uploadPath for participant {speaker}")

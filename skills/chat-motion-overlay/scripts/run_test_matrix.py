@@ -242,22 +242,44 @@ A?|right|第二个上传头像
             "expect_fail": True,
             "expected_error": "Participant 老婆 appears on both right and left",
         },
+       {
+           "name": "upload_slug_collision_unique_assets",
+           "transcriptContent": colliding_upload_transcript,
+           "config": base_config(
+               avatar_mode="upload",
+               nickname_mode="always",
+               participants={
+                   "A!": participant("left", "female-bunny-pink", sample_upload_left),
+                   "A?": participant("right", "male-penguin-blue", sample_upload_right),
+               },
+           ),
+           "render": False,
+           "expect_fail": False,
+           "assert_unique_upload_assets": True,
+       },
         {
-            "name": "upload_slug_collision_unique_assets",
-            "transcriptContent": colliding_upload_transcript,
+            "name": "invalid_transcript_avatar_key",
+            "transcriptContent": "title: 无效头像测试\ntime: 今天\n\nAlice|left|not-a-preset|你好\n",
+            "config": base_config(nickname_mode="always"),
+            "render": False,
+            "expect_fail": True,
+            "expected_error": "Unsupported avatar key for participant Alice: not-a-preset",
+        },
+        {
+            "name": "invalid_preset_mode_upload_path",
             "config": base_config(
-                avatar_mode="upload",
+                avatar_mode="preset",
                 nickname_mode="always",
                 participants={
-                    "A!": participant("left", "female-bunny-pink", sample_upload_left),
-                    "A?": participant("right", "male-penguin-blue", sample_upload_right),
+                    "闺蜜": participant("left", "female-bunny-pink"),
+                    "老婆": participant("right", "female-cat-orange", sample_upload_left),
                 },
             ),
             "render": False,
-            "expect_fail": False,
-            "assert_unique_upload_assets": True,
+            "expect_fail": True,
+            "expected_error": "avatarMode=preset does not allow uploadPath for participant 老婆",
         },
-    ]
+   ]
 
     results = []
     tsc_bin = node_modules / ".bin" / "tsc"
