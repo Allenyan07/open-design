@@ -46,7 +46,7 @@ const Bubble = ({
         opacity,
         alignItems: "flex-start",
         flexDirection: isRight ? "row-reverse" : "row",
-        justifyContent: chatSpec.sceneConfig.container === "none" ? (isRight ? "flex-end" : "flex-start") : "unset",
+        justifyContent: "flex-start",
       }}
     >
       <AvatarImage src={avatarSrcFor(participant)} />

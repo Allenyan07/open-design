@@ -10,6 +10,7 @@ Ask only for decisions that materially change the result. Infer the rest.
 
 - Infer `container=wechat` when the user says "微信聊天" or gives a WeChat-like screenshot.
 - Infer `avatarMode=preset` when no avatar preference is given.
+- For screenshot inputs, use visible avatars to help count and group participants, but use preset render avatars unless the user asks for custom or screenshot-derived avatars.
 - Infer `deviceFrame=iphone-dynamic-island` only when the user explicitly asks for a phone frame or the prior context strongly implies phone mockup output.
 - Infer `nicknameMode=hidden` for one-to-one chat clips unless the user asks to preserve identity or the content is clearly a group chat proof scene.
 - Infer `deliveryFormat=mov` when the user says they want to use the result in editing software or says "透明视频片段".
@@ -54,7 +55,13 @@ Ask:
 
 - `预设头像`
 - `上传头像`
-- `一边预设一边上传`
+- `部分角色上传头像`
+
+For screenshot inputs, phrase the default clearly:
+
+- `默认用预设头像（更稳定）`
+- `我提供头像图片`
+- `尝试从截图裁头像（可能不准）`
 
 ### Device frame
 

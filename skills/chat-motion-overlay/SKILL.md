@@ -12,6 +12,7 @@ Turn chat content into a configurable motion overlay clip instead of a single ha
 1. Normalize the chat input.
    - If the user gives a screenshot, extract the visible messages into the transcript format in `references/input-format.md`.
    - If the user gives plain text, keep one message per beat and preserve exact wording when authenticity matters.
+   - For screenshots, use visible avatars as clues for participant count and message grouping, but do not crop or recreate avatar images by default. Infer participants and sides, then render with preset avatars unless the user provides avatar files or explicitly requests screenshot-derived avatars.
 
 2. Choose a scene config.
    - Read `references/config-schema.md`.
@@ -50,6 +51,7 @@ Turn chat content into a configurable motion overlay clip instead of a single ha
 - Use `container: none` for standalone bubble motion without an app shell.
 - Use `container: wechat|telegram|messenger` when the platform chrome is part of the story.
 - Treat uploaded avatars as content assets and copy them into `public/` for the render bundle.
+- Prefer preset avatars when the user does not specify avatar files. Screenshot avatars may help identify participants, but recommend user-provided avatar files before attempting to crop or recreate avatars from screenshots.
 - Keep config-driven behavior explicit; do not silently switch style families.
 
 ## Question Policy
