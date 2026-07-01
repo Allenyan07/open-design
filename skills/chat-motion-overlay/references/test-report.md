@@ -22,8 +22,8 @@ Validated the new `$chat-motion-overlay` skill across:
 
 ## Matrix Result
 
-- Total cases: 16
-- Passed: 16
+- Total cases: 17
+- Passed: 17
 - Failed: 0
 
 ## Covered Cases
@@ -45,6 +45,7 @@ Validated the new `$chat-motion-overlay` skill across:
 14. `invalid_transcript_avatar_key`
 15. `invalid_preset_mode_upload_path`
 16. `config_preset_overrides_transcript_avatar_hint`
+17. `invalid_force_dangerous_output_dir`
 
 ## Issues Found And Fixed
 
@@ -88,6 +89,9 @@ Validated the new `$chat-motion-overlay` skill across:
 13. Transcript avatar hints took precedence over explicit participant config presets, so config could not override transcript-derived or OCR-derived hints.
     - Fix: changed avatar selection order to config-first (`configured.get("preset") or message["avatar"] or auto...`), consistent with `references/input-format.md`.
 
+14. `--force` could recursively delete arbitrary existing directories when `--output-dir` was mistyped.
+    - Fix: reject dangerous targets up front, and only allow `--force` overwrites for previously generated bundle directories marked with `.chat-motion-overlay-bundle`.
+
 ## Verification Notes
 
 - Representative bundles were rendered to still images successfully.
@@ -102,6 +106,7 @@ Validated the new `$chat-motion-overlay` skill across:
 - Config participant presets correctly override transcript avatar hints.
 - Transcript avatar hints that are not valid preset keys fail with a clear validation error.
 - `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error.
+- Dangerous `--force` output targets are rejected before any recursive deletion occurs.
 
 ## References
 

@@ -13,11 +13,10 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Validate uploaded avatar asset names remain unique when participant slugs collide
 - Validate bubble-only overlays keep right-side rows explicitly right-aligned
 - Lock down the question strategy so incomplete requests are handled consistently
-
-
-  - Validate transcript avatar hints are checked against preset keys before use
-  - Validate `uploadPath` is rejected when `avatarMode` is `preset`
-  - Validate config participant presets override transcript avatar hints
+- Validate transcript avatar hints are checked against preset keys before use
+- Validate `uploadPath` is rejected when `avatarMode` is `preset`
+- Validate config participant presets override transcript avatar hints
+- Validate `--force` rejects dangerous output directories instead of deleting them
 ## Covered Dimensions
 
 - `container`: `none`, `wechat`, `telegram`, `messenger`
@@ -120,6 +119,10 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
    - Config preset differs from transcript avatar hint for the same participant
    - Expected: generated spec uses the config preset, not the transcript hint
 
+17. `invalid_force_dangerous_output_dir`
+   - `--force` targets a dangerous existing directory such as the skill root
+   - Expected: bundle preparation fails before any recursive deletion happens
+
 ## Pass Criteria
 
 - Valid cases generate JSON spec successfully
@@ -137,4 +140,5 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Transcript-provided avatar keys that are not in the preset library fail with a clear validation error
 - `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error
 - Config participant presets take precedence over transcript avatar hints when both are present
+- `--force` rejects dangerous output directories before deleting anything
 - Question policy is documented with defaults, triggers, and user-facing wording

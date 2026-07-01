@@ -231,6 +231,15 @@ A?|right|第二个上传头像
             "expected_error": "Configured uploadPath for participant 老婆 does not exist",
         },
         {
+            "name": "invalid_force_dangerous_output_dir",
+            "config": base_config(),
+            "render": False,
+            "expect_fail": True,
+            "fail_phase": "prepare_bundle",
+            "output_dir": "__SKILL_ROOT__",
+            "expected_error": "Refusing to use dangerous output directory",
+        },
+        {
             "name": "invalid_participant_side_conflict",
             "transcriptContent": side_conflict_transcript,
             "config": base_config(
@@ -303,7 +312,7 @@ A?|right|第二个上传头像
         case_dir.mkdir(parents=True, exist_ok=True)
         config_path = case_dir / "config.json"
         spec_path = case_dir / "spec.json"
-        bundle_dir = case_dir / "bundle"
+        bundle_dir = skill_root if case.get("output_dir") == "__SKILL_ROOT__" else case_dir / "bundle"
         active_transcript = transcript
         if case.get("transcriptContent"):
             active_transcript = case_dir / "transcript.txt"
