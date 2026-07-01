@@ -11,12 +11,8 @@ triggers:
   - "聊天气泡动效"
   - "透明聊天视频"
 od:
-  mode: video
-  surface: video
-  scenario: marketing
-  preview:
-    type: html
-    entry: example.html
+  mode: utility
+  category: animation-motion
   design_system:
     requires: false
 ---
