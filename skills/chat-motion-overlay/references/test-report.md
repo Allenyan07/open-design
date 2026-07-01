@@ -1,6 +1,6 @@
 # Test Report
 
-Date: 2026-06-28
+Date: 2026-07-01
 
 ## Scope
 
@@ -12,7 +12,9 @@ Validated the new `$chat-motion-overlay` skill across:
 - preset avatar asset copying
 - uploaded avatar asset copying
 - generated bundle sanitization for uploaded avatar paths
+- collision-proof uploaded avatar asset names
 - group chat participant-level avatar assignment
+- bubble-only right-side alignment
 - participant side consistency validation
 - Remotion template type safety
 - representative still rendering
@@ -20,8 +22,8 @@ Validated the new `$chat-motion-overlay` skill across:
 
 ## Matrix Result
 
-- Total cases: 12
-- Passed: 12
+- Total cases: 13
+- Passed: 13
 - Failed: 0
 
 ## Covered Cases
@@ -38,6 +40,7 @@ Validated the new `$chat-motion-overlay` skill across:
 10. `invalid_mixed_without_upload`
 11. `invalid_upload_missing_file`
 12. `invalid_participant_side_conflict`
+13. `upload_slug_collision_unique_assets`
 
 ## Issues Found And Fixed
 
@@ -66,13 +69,21 @@ Validated the new `$chat-motion-overlay` skill across:
 8. One speaker could be interpreted on both sides if the transcript conflicted.
    - Fix: added participant side consistency validation.
 
+9. Distinct participant names could normalize to the same slug and overwrite uploaded avatar assets.
+   - Fix: generated stable unique participant ids and added a collision test with two uploaded avatars.
+
+10. Bubble-only overlays needed explicit right-side row alignment.
+    - Fix: split row alignment from avatar/bubble ordering, and added a style assertion for the plain bubble case.
+
 ## Verification Notes
 
 - Representative bundles were rendered to still images successfully.
 - Invalid config cases failed with the expected validation errors.
 - Invalid uploaded-avatar file paths failed during bundle preparation with a clear error.
 - Generated `chatSpec.ts` bundles kept only participant `uploadAsset` entries and did not leak local `uploadPath` values.
+- Uploaded avatar assets stayed unique when participant display names slugified to the same base id.
 - Group chat participants resolved to distinct participant avatars instead of sharing side-level avatars.
+- Bubble-only transparent overlays explicitly align right-side rows to the right edge.
 - Side conflicts for a single participant failed with a clear validation error.
 - Bundle type checking passed with `tsc --noEmit`.
 

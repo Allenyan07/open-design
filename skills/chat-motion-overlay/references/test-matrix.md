@@ -10,6 +10,8 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Validate representative rendering for each major scene family
 - Catch invalid config combinations early
 - Validate group chats can assign avatars per participant instead of only per side
+- Validate uploaded avatar asset names remain unique when participant slugs collide
+- Validate bubble-only overlays keep right-side rows explicitly right-aligned
 - Lock down the question strategy so incomplete requests are handled consistently
 
 ## Covered Dimensions
@@ -96,6 +98,11 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
    - One participant appears on both left and right sides
    - Expected: fail with validation error and ask for consistent participant side
 
+13. `upload_slug_collision_unique_assets`
+   - Avatar mode: `upload`
+   - Two distinct speaker names normalize to the same slug
+   - Expected: generated participant ids and copied upload assets remain unique
+
 ## Pass Criteria
 
 - Valid cases generate JSON spec successfully
@@ -104,6 +111,8 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 - Generated bundle passes `tsc --noEmit`
 - Representative valid cases render a still frame successfully
 - Group chat cases assign avatars by participant, not only by left/right side
+- Uploaded avatar assets remain collision-proof for participants with colliding slug bases
+- Bubble-only overlays explicitly use right-side row alignment in the generated template
 - Participant side conflicts fail instead of rendering one person on both sides
 - Invalid cases fail with the expected validation error
 - Invalid upload-path cases fail during bundle preparation instead of silently falling back to preset avatars

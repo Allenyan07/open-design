@@ -26,6 +26,15 @@ def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=str(cwd), text=True, capture_output=True)
 
 
+def read_generated_chat_spec(path: Path) -> dict:
+    content = path.read_text(encoding="utf-8").strip()
+    prefix = "export const chatSpec = "
+    suffix = " as const;"
+    if not content.startswith(prefix) or not content.endswith(suffix):
+        raise ValueError("Generated chatSpec.ts has an unexpected shape")
+    return json.loads(content[len(prefix) : -len(suffix)])
+
+
 def participant(side: str, preset: str, upload_path: str | None = None) -> dict:
     value = {"side": side, "preset": preset}
     if upload_path:
@@ -87,6 +96,12 @@ time: 今天
 
 老婆|right|第一句在右侧
 老婆|left|第二句错误地在左侧
+"""
+    colliding_upload_transcript = """title: 碰撞测试
+time: 今天
+
+A!|left|第一个上传头像
+A?|right|第二个上传头像
 """
 
     cases = [
@@ -227,6 +242,21 @@ time: 今天
             "expect_fail": True,
             "expected_error": "Participant 老婆 appears on both right and left",
         },
+        {
+            "name": "upload_slug_collision_unique_assets",
+            "transcriptContent": colliding_upload_transcript,
+            "config": base_config(
+                avatar_mode="upload",
+                nickname_mode="always",
+                participants={
+                    "A!": participant("left", "female-bunny-pink", sample_upload_left),
+                    "A?": participant("right", "male-penguin-blue", sample_upload_right),
+                },
+            ),
+            "render": False,
+            "expect_fail": False,
+            "assert_unique_upload_assets": True,
+        },
     ]
 
     results = []
@@ -328,6 +358,44 @@ time: 今天
                 }
             )
             continue
+
+        if case.get("assert_unique_upload_assets"):
+            spec = read_generated_chat_spec(bundle_dir / "src" / "chatSpec.ts")
+            upload_assets = [participant.get("uploadAsset") for participant in spec["participants"] if participant.get("uploadAsset")]
+            if len(upload_assets) != len(set(upload_assets)):
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "upload_asset_collision",
+                        "details": f"Expected unique upload assets, got {upload_assets}",
+                    }
+                )
+                continue
+            missing_assets = [asset for asset in upload_assets if not (bundle_dir / "public" / asset).exists()]
+            if missing_assets:
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "upload_asset_files",
+                        "details": f"Generated spec references missing upload assets: {missing_assets}",
+                    }
+                )
+                continue
+
+        if case["name"] == "plain_bubbles_no_frame_first_message":
+            bubble_scene_source = (bundle_dir / "src" / "components" / "BubbleScene.tsx").read_text(encoding="utf-8")
+            if 'justifyContent: isRight ? "flex-end" : "flex-start"' not in bubble_scene_source:
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "bubble_alignment_style",
+                        "details": "Bubble-only template must explicitly justify right-side rows to flex-end.",
+                    }
+                )
+                continue
 
         symlink_path = bundle_dir / "node_modules"
         if symlink_path.exists() or symlink_path.is_symlink():

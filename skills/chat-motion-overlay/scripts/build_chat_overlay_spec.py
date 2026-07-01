@@ -159,6 +159,7 @@ def configured_participant(speaker: str, config: dict) -> dict:
 def build_spec(parsed: dict, config: dict) -> dict:
     meta = parsed["metadata"]
     participants = {}
+    used_participant_ids = set()
     order = []
     messages = []
     start = int(meta["start"])
@@ -174,11 +175,12 @@ def build_spec(parsed: dict, config: dict) -> dict:
                 len(order) - 1, {p["avatarKey"] for p in participants.values()}
             )
             participant = {
-                "id": slugify(speaker),
+                "id": unique_slug(slugify(speaker), used_participant_ids),
                 "name": speaker,
                 "side": side,
                 "avatarKey": avatar_key,
             }
+            used_participant_ids.add(participant["id"])
             if configured.get("uploadPath"):
                 participant["uploadPath"] = configured["uploadPath"]
             if config["avatarMode"] == "upload" and not participant.get("uploadPath"):
@@ -221,6 +223,15 @@ def build_spec(parsed: dict, config: dict) -> dict:
 def slugify(text: str) -> str:
     lowered = text.strip().lower()
     return re.sub(r"[^a-z0-9\u4e00-\u9fff]+", "-", lowered).strip("-") or "speaker"
+
+
+def unique_slug(base: str, used: set[str]) -> str:
+    if base not in used:
+        return base
+    index = 2
+    while f"{base}-{index}" in used:
+        index += 1
+    return f"{base}-{index}"
 
 
 def main() -> None:

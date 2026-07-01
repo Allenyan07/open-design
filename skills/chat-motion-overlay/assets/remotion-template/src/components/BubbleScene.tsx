@@ -41,33 +41,32 @@ const Bubble = ({
     <div
       style={{
         display: "flex",
-        gap: 12,
         marginBottom: 14,
         opacity,
-        alignItems: "flex-start",
-        flexDirection: isRight ? "row-reverse" : "row",
-        justifyContent: "flex-start",
+        justifyContent: isRight ? "flex-end" : "flex-start",
       }}
     >
-      <AvatarImage src={avatarSrcFor(participant)} />
-      <div style={{maxWidth: "72%", display: "flex", flexDirection: "column", alignItems: isRight ? "flex-end" : "flex-start", gap: 6}}>
-        {showName ? <div style={{fontSize: 18, color: "#7C8490", fontWeight: 700}}>{message.speaker}</div> : null}
-        <div
-          style={{
-            background: bubbleBg,
-            padding: "16px 22px",
-            borderRadius: 16,
-            fontSize: 30,
-            lineHeight: 1.35,
-            fontWeight: 500,
-            color: textColor,
-            boxShadow: message.highlight ? "0 8px 26px rgba(236,135,120,0.18)" : "0 2px 6px rgba(0,0,0,0.05)",
-            border: message.highlight ? "2px solid rgba(235,135,120,0.45)" : "1px solid rgba(0,0,0,0.04)",
-            transform: `translateX(${x}px) scale(${scale})`,
-            transformOrigin: isRight ? "right center" : "left center",
-          }}
-        >
-          {message.text}
+      <div style={{display: "flex", gap: 12, alignItems: "flex-start", flexDirection: isRight ? "row-reverse" : "row", maxWidth: "86%"}}>
+        <AvatarImage src={avatarSrcFor(participant)} />
+        <div style={{maxWidth: "calc(100% - 76px)", display: "flex", flexDirection: "column", alignItems: isRight ? "flex-end" : "flex-start", gap: 6}}>
+          {showName ? <div style={{fontSize: 18, color: "#7C8490", fontWeight: 700}}>{message.speaker}</div> : null}
+          <div
+            style={{
+              background: bubbleBg,
+              padding: "16px 22px",
+              borderRadius: 16,
+              fontSize: 30,
+              lineHeight: 1.35,
+              fontWeight: 500,
+              color: textColor,
+              boxShadow: message.highlight ? "0 8px 26px rgba(236,135,120,0.18)" : "0 2px 6px rgba(0,0,0,0.05)",
+              border: message.highlight ? "2px solid rgba(235,135,120,0.45)" : "1px solid rgba(0,0,0,0.04)",
+              transform: `translateX(${x}px) scale(${scale})`,
+              transformOrigin: isRight ? "right center" : "left center",
+            }}
+          >
+            {message.text}
+          </div>
         </div>
       </div>
     </div>
