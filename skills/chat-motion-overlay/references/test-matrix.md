@@ -17,6 +17,7 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 
   - Validate transcript avatar hints are checked against preset keys before use
   - Validate `uploadPath` is rejected when `avatarMode` is `preset`
+  - Validate config participant presets override transcript avatar hints
 ## Covered Dimensions
 
 - `container`: `none`, `wechat`, `telegram`, `messenger`
@@ -115,6 +116,10 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
    - Avatar mode: `preset` but a participant config carries `uploadPath`
    - Expected: fail with validation error
 
+16. `config_preset_overrides_transcript_avatar_hint`
+   - Config preset differs from transcript avatar hint for the same participant
+   - Expected: generated spec uses the config preset, not the transcript hint
+
 ## Pass Criteria
 
 - Valid cases generate JSON spec successfully
@@ -131,4 +136,5 @@ This matrix covers the configurable surface of `$chat-motion-overlay`.
 
 - Transcript-provided avatar keys that are not in the preset library fail with a clear validation error
 - `avatarMode=preset` configs that include `uploadPath` fail with a clear validation error
+- Config participant presets take precedence over transcript avatar hints when both are present
 - Question policy is documented with defaults, triggers, and user-facing wording

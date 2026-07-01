@@ -279,6 +279,19 @@ A?|right|第二个上传头像
             "expect_fail": True,
             "expected_error": "avatarMode=preset does not allow uploadPath for participant 老婆",
         },
+        {
+            "name": "config_preset_overrides_transcript_avatar_hint",
+            "transcriptContent": "title: \u4f18\u5148\u7ea7\u6d4b\u8bd5\ntime: \u4eca\u5929\n\nAlice|left|male-penguin-blue|\u4f60\u597d\n",
+            "config": base_config(
+                nickname_mode="always",
+                participants={
+                    "Alice": participant("left", "female-bunny-pink"),
+                },
+            ),
+            "render": False,
+            "expect_fail": False,
+            "assert_config_avatar_wins": True,
+        },
    ]
 
     results = []
@@ -347,6 +360,20 @@ A?|right|第二个上传头像
                         "status": "failed",
                         "phase": "participant_avatars",
                         "details": f"Expected distinct participant avatars, got {avatar_keys}",
+                    }
+                )
+                continue
+
+        if case.get("assert_config_avatar_wins"):
+            spec = json.loads(spec_path.read_text(encoding="utf-8"))
+            alice = next(p for p in spec["participants"] if p["name"] == "Alice")
+            if alice["avatarKey"] != "female-bunny-pink":
+                results.append(
+                    {
+                        "case": case["name"],
+                        "status": "failed",
+                        "phase": "config_avatar_precedence",
+                        "details": f"Expected config preset female-bunny-pink, got {alice['avatarKey']}",
                     }
                 )
                 continue

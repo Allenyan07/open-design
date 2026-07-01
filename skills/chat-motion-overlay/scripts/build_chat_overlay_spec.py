@@ -173,7 +173,7 @@ def build_spec(parsed: dict, config: dict) -> dict:
             configured = configured_participant(speaker, config)
             inferred_side = "left" if len(order) == 1 else "right" if len(order) == 2 else "left"
             side = configured.get("side") or message["side"] or inferred_side
-            avatar_key = message["avatar"] or configured.get("preset") or auto_avatar_for_participant(
+            avatar_key = configured.get("preset") or message["avatar"] or auto_avatar_for_participant(
                 len(order) - 1, {p["avatarKey"] for p in participants.values()}
             )
             if avatar_key not in PRESET_KEYS:
@@ -194,9 +194,9 @@ def build_spec(parsed: dict, config: dict) -> dict:
         side = message["side"] or participant["side"]
         if side != participant["side"]:
             raise ValueError(f"Participant {speaker} appears on both {participant['side']} and {side}; use one side per participant")
-        avatar_key = message["avatar"] or participant["avatarKey"]
-        if avatar_key != participant["avatarKey"]:
-            raise ValueError(f"Participant {speaker} uses conflicting avatar keys: {participant['avatarKey']} and {avatar_key}")
+        avatar_key = participant["avatarKey"]
+        if message["avatar"] and message["avatar"] != participant["avatarKey"] and not configured_participant(speaker, config).get("preset"):
+            raise ValueError(f"Participant {speaker} has conflicting transcript avatar hints: {participant['avatarKey']} and {message['avatar']}; set a config preset to override")
         messages.append(
             {
                 "id": f"msg-{index + 1}",
